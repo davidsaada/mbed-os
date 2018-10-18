@@ -637,7 +637,7 @@
     },
     "K64F": {
         "supported_form_factors": ["ARDUINO"],
-        "components": ["SD", "SPIF"],
+        "components": ["SD", "SPIF", "FLASHIAP"],
         "core": "Cortex-M4F",
         "supported_toolchains": ["ARM", "GCC_ARM", "IAR"],
         "extra_labels": ["Freescale", "MCUXpresso_MCUS", "KSDK2_MCUS", "FRDM", "KPSDK_MCUS", "KPSDK_CODE", "MCU_K64F", "Freescale_EMAC"],

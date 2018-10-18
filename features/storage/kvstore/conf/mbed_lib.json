@@ -1,0 +1,13 @@
+{
+"name": "storage",
+    "config": {
+        "storage_type": {
+            "help": "Options are TDB_INTERNAL, TDB_EXTERNAL, TDB_EXTERNAL_NO_RBP, FILESYSTEM or FILESYSTEM_NO_RBP.",
+            "value": "FILESYSTEM_NO_RBP"
+        },
+        "default_kv": {
+            "help": "A string name for the default kvstore configurtaion",
+            "value": "kv"
+        }
+    }
+}
