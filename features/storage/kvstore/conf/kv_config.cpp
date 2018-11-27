@@ -569,7 +569,7 @@ int _storage_config_TDB_INTERNAL()
 
     if (_calculate_blocksize_match_tdbstore(kvstore_config.internal_bd) != MBED_SUCCESS) {
         tr_error("KV Config: Can not create TDBStore with less then 2 sector.");
-        return MBED_ERROR_INVALID_ARGUMENT;
+        return MBED_ERROR_INVALID_SIZE;
     }
 
     ret = kvstore_config.internal_bd->deinit();
@@ -640,7 +640,7 @@ int _storage_config_TDB_EXTERNAL()
 
     if (_calculate_blocksize_match_tdbstore(kvstore_config.internal_bd) != MBED_SUCCESS) {
         tr_error("KV Config: Can not create TDBStore with less then 2 sector.");
-        return MBED_ERROR_INVALID_ARGUMENT;
+        return MBED_ERROR_INVALID_SIZE;
     }
 
     static TDBStore tdb_internal(kvstore_config.internal_bd);
@@ -743,7 +743,7 @@ int _storage_config_tdb_external_common()
 
     if (_calculate_blocksize_match_tdbstore(kvstore_config.external_bd) != MBED_SUCCESS) {
         tr_error("KV Config: Can not create TDBStore with less then 2 sector.");
-        return MBED_ERROR_INVALID_SIZE;
+        return MBED_ERROR_UNSUPPORTED;
     }
 
     static TDBStore tdb_external(kvstore_config.external_bd);
