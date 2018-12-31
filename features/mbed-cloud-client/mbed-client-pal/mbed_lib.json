@@ -1,0 +1,18 @@
+{
+    "name": "mbed-client-pal",
+    "config": {
+        "update-active-metadata-header-offset": null,
+        "rsa-required": false,
+        "pal-dns-api-version": {
+            "help": "Version of DNS API. This requires that PAL_NET_DNS_SUPPORT is defined. Value 0 = sync DNS, 1 = async DNS API for mbed-os 5.8 or older, 2 = async for mbed-os 5.9 or newer",
+            "macro_name": "PAL_DNS_API_VERSION",
+            "value" : 0
+        }
+    },
+    "target_overrides": {
+        "MODULE_UBLOX_ODIN_W2": {
+            "rsa-required": true
+        }
+    }
+}
+
