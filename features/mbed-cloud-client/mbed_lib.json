@@ -16,6 +16,8 @@
         }
     },
     "macros" : [
+        "MBED_CLIENT_USER_CONFIG_FILE=\"mbed_cloud_client_default_user_config.h\"",
+        "MBED_CLOUD_CLIENT_USER_CONFIG_FILE=\"mbed_cloud_client_default_user_config.h\"",
         "ARM_UC_PROFILE_MBED_CLOUD_CLIENT=1"
     ]
 }
