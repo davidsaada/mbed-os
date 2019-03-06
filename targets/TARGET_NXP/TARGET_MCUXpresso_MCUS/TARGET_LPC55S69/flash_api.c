@@ -15,6 +15,7 @@
  */
 
 #include "flash_api.h"
+#include "stdlib.h"
 #include "mbed_critical.h"
 
 #if DEVICE_FLASH
@@ -28,9 +29,12 @@
 #define LPC55S69_SECURE_FLASH_START (PSA_SECURE_ROM_START - S_ROM_ALIAS_BASE)
 #define LPC55S69_SECURE_FLASH_SIZE  (PSA_SECURE_ROM_SIZE + FLASH_SST_AREA_SIZE)
 
-static flash_config_t flash_config;
+#define EFFECTIVE_PAGE_SIZE 32
 
 #if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
+
+static flash_config_t flash_config;
+
 /* Check if address range [start_addr, end_addr] is in non-secure flash
  *
  *  @param obj          The flash object
@@ -72,6 +76,11 @@ MBED_NONSECURE_ENTRY int32_t flash_init(flash_t *obj)
     }
 }
 
+MBED_NONSECURE_ENTRY int32_t flash_free(flash_t *obj)
+{
+    return 0;
+}
+
 MBED_NONSECURE_ENTRY int32_t flash_erase_sector(flash_t *obj, uint32_t address)
 {
     if (cmse_nonsecure_caller()) {
@@ -98,6 +107,10 @@ MBED_NONSECURE_ENTRY int32_t flash_erase_sector(flash_t *obj, uint32_t address)
     }
 }
 
+/* Need to forward declare this as otherwise flash_program_page will use the default function and
+ * not the one defined in this module. */
+MBED_NONSECURE_ENTRY int32_t flash_read(flash_t *obj, uint32_t address, uint8_t *data, uint32_t size);
+
 MBED_NONSECURE_ENTRY int32_t flash_program_page(flash_t *obj, uint32_t address, const uint8_t *data, uint32_t size)
 {
     if (cmse_nonsecure_caller()) {
@@ -112,10 +125,24 @@ MBED_NONSECURE_ENTRY int32_t flash_program_page(flash_t *obj, uint32_t address, 
     uint32_t n;
     uint32_t status;
     uint32_t failedAddress, failedData;
-
-    status = FLASH_Program(&flash_config, address, data, size);
-    if (status == kStatus_Success) {
-        status = FLASH_VerifyProgram(&flash_config, address, size, data, &failedAddress, &failedData);
+    static uint8_t prog_buf[FSL_FEATURE_SYSCON_FLASH_PAGE_SIZE_BYTES];
+    while (size) {
+        uint32_t offset = address % FSL_FEATURE_SYSCON_FLASH_PAGE_SIZE_BYTES;
+        uint32_t chunk_size;
+        if (offset + size > FSL_FEATURE_SYSCON_FLASH_PAGE_SIZE_BYTES) {
+            chunk_size = FSL_FEATURE_SYSCON_FLASH_PAGE_SIZE_BYTES - offset;
+        } else {
+            chunk_size = size;
+        }
+        uint32_t page_address = address / FSL_FEATURE_SYSCON_FLASH_PAGE_SIZE_BYTES * FSL_FEATURE_SYSCON_FLASH_PAGE_SIZE_BYTES;
+        flash_read(obj, page_address, prog_buf, FSL_FEATURE_SYSCON_FLASH_PAGE_SIZE_BYTES);
+        memcpy(prog_buf + offset, data, size);
+        status = FLASH_Program(&flash_config, page_address, prog_buf, FSL_FEATURE_SYSCON_FLASH_PAGE_SIZE_BYTES);
+        if (status == kStatus_Success) {
+            status = FLASH_VerifyProgram(&flash_config, page_address, FSL_FEATURE_SYSCON_FLASH_PAGE_SIZE_BYTES, prog_buf, &failedAddress, &failedData);
+        }
+        address += chunk_size;
+        size -= chunk_size;
     }
     core_util_critical_section_exit();
 
@@ -146,11 +173,6 @@ MBED_NONSECURE_ENTRY int32_t flash_read(flash_t *obj, uint32_t address, uint8_t 
 }
 #endif // #if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
 
-int32_t flash_free(flash_t *obj)
-{
-    return 0;
-}
-
 uint32_t flash_get_sector_size(const flash_t *obj, uint32_t address)
 {
 #if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
@@ -172,7 +194,8 @@ uint32_t flash_get_sector_size(const flash_t *obj, uint32_t address)
 
 uint32_t flash_get_page_size(const flash_t *obj)
 {
-    return FSL_FEATURE_SYSCON_FLASH_PAGE_SIZE_BYTES;
+    return EFFECTIVE_PAGE_SIZE;
+//    return FSL_FEATURE_SYSCON_FLASH_PAGE_SIZE_BYTES;
 }
 
 uint32_t flash_get_start_address(const flash_t *obj)

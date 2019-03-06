@@ -94,6 +94,7 @@ int FlashIAP::deinit()
 int FlashIAP::read(void *buffer, uint32_t addr, uint32_t size)
 {
     int32_t ret = -1;
+    printf("FlashIAP::read addr 0x%lx, size %d\n", addr, size);
     _mutex->lock();
     {
         ScopedRamExecutionLock make_ram_executable;
@@ -119,6 +120,7 @@ int FlashIAP::program(const void *buffer, uint32_t addr, uint32_t size)
         return -1;
     }
 
+    printf("FlashIAP::program addr 0x%lx, size %d\n", addr, size);
     int ret = 0;
     _mutex->lock();
     while (size && !ret) {
@@ -184,6 +186,7 @@ int FlashIAP::erase(uint32_t addr, uint32_t size)
     uint32_t flash_end_addr = flash_start_addr + flash_size;
     uint32_t erase_end_addr = addr + size;
 
+    printf("FlashIAP::erase addr 0x%lx, size %d\n", addr, size);
     if (erase_end_addr > flash_end_addr) {
         return -1;
     } else if (erase_end_addr < flash_end_addr) {
